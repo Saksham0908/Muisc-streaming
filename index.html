@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Streaming App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column; 
+      justify-content: space-between;
+      height: 100vh;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.3s;
+    }
+
+    /* Video background for body */
+    #video-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0; /* Video is hidden initially */
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    h1 {
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      position: absolute;
+      top: 20px;
+      font-size: 36px;
+      text-align: center;
+      width: 100%;
+      color: #fff;
+    }
+
+    /* Search Bar */
+    .search-bar-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 60px;
+      margin-bottom: 20px;
+    }
+
+    .search-bar {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      border-radius: 20px;
+      border: none;
+      margin-right: 10px;
+    }
+
+    .search-button {
+      background-color: #f00;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    .search-button:hover {
+      background-color: #d00;
+    }
+
+    .songs-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 50px;
+      justify-content: center;
+      margin-top: 80px;
+      margin-bottom: 50px;
+      flex-grow: 1;
+      max-height: 50%;
+      overflow-y: auto;
+    }
+
+    .song-card {
+      width: 150px;
+      text-align: center;
+      cursor: pointer;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      padding: 10px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      max-height: 200px;
+    }
+
+    .song-card:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px #000;
+    }
+
+    .song-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+
+    .song-title {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      color: #000;
+      padding: 5px;
+      border: 2px solid #fff; 
+      border-radius: 5px;
+      background-color: #fff; 
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+    }
+
+    .controls button {
+      background: #000;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 24px;
+      padding: 10px;
+      transition: transform 0.2s, color 0.3s;
+    }
+
+    .controls button:hover {
+      transform: scale(1.2);
+      background: #fff;
+      color: #000;
+    }
+
+    
+    .left-rectangle {
+      position: absolute;
+      top: 80px; 
+      left: 0;
+      width: 210px; 
+      height: 100%;
+      background-color: #fff;
+      border-radius: 15px; 
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; 
+      align-items: center; 
+      padding-top: 20px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+  
+    .rectangle {
+      position: absolute;
+      top: 80px;
+      right: 0;
+      width: 210px;
+      height: 100%;
+      background-color: #fff;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-top: 20px;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      align-items: center;
+      padding-bottom: 20px;
+    }
+
+    .rectangle-title {
+      font-size: 18px;
+      color: #000;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .song-details {
+      text-align: center;
+      margin-top: 10px;
+      color: #000;
+      width: 100%;
+      padding: 10px;
+      flex-grow: 1;
+    }
+
+    .song-details img {
+      width: 90%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .song-details p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    /* Bold artist and movie name */
+    .song-details .bold-text {
+      font-weight: bold;
+    }
+
+    /* Video for "Now Playing" rectangle */
+    .now-playing-video {
+      width: 90%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 15px;
+      margin-top: 15px;
+    }
+
+    /* Timeline bar at the top */
+    #timeline {
+      position: absolute;
+      bottom: 100px; /* Adjust the distance from the play button */
+      width: 50%;
+      height: 1px;
+      background: #ddd;
+      border-radius: 5px;
+      margin-top: 10px;
+      outline: none;
+    }
+
+    #timeline::-webkit-slider-thumb {
+      background: #f00;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #timeline::-webkit-slider-thumb:hover {
+      background: #fff;
+    }
+
+    /* Style for the buttons in the left rectangle */
+    .left-rectangle button {
+      background-color: #fff;
+      color: #000;
+      border: none;
+      padding: 15px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: transform 0.3s;
+      width: 80%;
+      text-align: center; /* Center the text */
+      margin-bottom: 15px; /* Add spacing between buttons */
+      position: relative;
+    }
+
+    .left-rectangle button:hover {
+      transform: scale(1.1);
+      background-color: #f0f0f0;
+    }
+
+    
+    #playlist-img {
+      position: absolute;
+      left: 8px; 
+      top: 50%;
+      transform: translateY(-50%); 
+      width: 25px; 
+      height: 25px; 
+    }
+
+    
+    #album-img {
+      position: absolute;
+      left: -40px; 
+      top: 50%;
+      transform: translateY(-50%); 
+      width: 20px; 
+      height: 20px; 
+    }
+
+   
+    #artist-img {
+      position: absolute;
+      left: -40px; 
+      top: 50%;
+      transform: translateY(-50%); 
+      width: 20px;
+      height: 20px; 
+    }
+
+   
+    #account {
+      background-color: #fff;
+      color: #000;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: transform 0.3s;
+      width: 100%;
+      text-align: left;
+      position: relative;
+      padding-left: 40px;
+    }
+
+   
+    #account-img {
+      position: absolute;
+      left: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+    }
+
+    #account:hover {
+      transform: scale(1.1);
+      background-color: #f0f0f0;
+    }
+
+    .no-results {
+      color: #f00;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .button-container {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 15px;
+        z-index: 10; /* Ensure the buttons are on top */
+}
+
+.button-container a {
+  display: inline-block;
+  background-color: #f00; /* Red background */
+  color: #fff;
+  padding: 12px 25px; /* Adjust padding to make the buttons larger */
+  text-decoration: none;
+  font-size: 16px;
+  border-radius: 50px; /* Fully rounded borders */
+  border: 2px solid transparent; /* Add border to be visible on hover */
+  transition: background-color 0.3s, transform 0.2s ease-in-out, border 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for visibility */
+}
+
+.button-container a:hover {
+  background-color: #d00; /* Darker red on hover */
+  transform: scale(1.05); /* Slight scale up on hover */
+  border: 2px solid #fff; /* White border on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Increase shadow on hover */
+}
+  </style>
+</head>
+<body>
+    <div class="button-container">
+        <a href="login.html">
+          <button id="Login">
+            LOGIN
+          </button>
+        </a>
+
+        <a href="signup.html">
+          <button id="Signup">
+            SIGNUP
+          </button>
+        </a>
+      </div>
+  <!-- Video background -->
+  <video id="video-background" autoplay muted loop>
+    <source src="C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/videoplayback.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <!-- Search Bar Section -->
+  <div class="search-bar-container">
+    <input type="text" id="search-bar" class="search-bar" placeholder="Search for a song...">
+    <button class="search-button" id="search-btn">Search</button>
+  </div>
+
+  <h1>Music Streaming App</h1>
+  
+  <div class="songs-container" id="songs-container">
+    <!-- Song cards will be dynamically added here -->
+  </div>
+  
+  <div class="no-results" id="no-results"></div>
+
+  <!-- Controls for Music Playback -->
+  <div class="controls">
+    <button id="prev">&#9664; &#9664; </button>
+    <button id="play" class="play">&#9654; </button>
+    <button id="next">&#9654; &#9654; </button>
+  </div>
+
+  <!-- Timeline bar to show the song progress -->
+  <input type="range" id="timeline" value="0" step="1" min="0" max="100">
+
+  <!-- White Rectangle on the left side -->
+  <div class="left-rectangle">
+    <a href="Account.html">
+    <button id="account">
+      <img id="account-img" src="C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/75_user-circle-512.jpg" alt="Account Icon">
+      Account
+    </button>
+    </a>
+    <button id="playlist">
+      <img id="playlist-img" src="C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/6680955.png" alt="Playlist Icon">
+      Playlist
+    </button>
+    <a href="Album.html">
+    <button id="album">
+      <img id="album-img" src="C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/png-transparent-digital-audio-compact-disc-computer-icons-album-sound-music-font-album-logo-sound.png" alt="Album Icon">
+      Album
+    </button>
+    </a>
+    <a href="artist.html">
+    <button id="artist">
+      <img id="artist-img" src="C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/1604738-200.png" alt="Artist Icon">
+      Artist
+    </button>
+    </a>
+  </div>
+
+  <!-- Black Rectangle on the right -->
+  <div class="rectangle" id="rectangle">
+    <div class="rectangle-title">Now Playing</div>
+    <div class="song-details" id="song-details">
+      <img id="song-image" src="" alt="Song Cover">
+      <p><strong id="song-name"></strong></p>
+      <p class="bold-text" id="song-movie"></p>
+      <p class="bold-text" id="song-artist"></p>
+      <video id="rectangle-details-video" class="now-playing-video" autoplay muted loop></video>
+    </div>
+  </div>
+
+  <audio id="audio" style="display: none;">
+    <source id="audio-source" src="" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const songs = [
+      {
+        name: 'Imagine Dragons - Believer',
+        src: 'http://127.0.0.1:8000/y2mate.com%20-%20Imagine%20Dragons%20%20Believer%20Official%20Music%20Video_360p.mp3',
+        image: 'C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/ab67616d0000b2732f2623c93d48a736c6f23cef.jfif',
+        artist: 'Imagine Dragons',
+        movie: 'Believer',
+        video: 'C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/New folder (3)/vid.mp4'
+      },
+      {
+        name: 'Arijit Singh - Apna Bana Le',
+        src: 'http://127.0.0.1:8000/y2mate.com%20-%20Apna%20Bana%20Le%20%20Bhediya%20%20Varun%20Dhawan%20Kriti%20Sanon%20SachinJigar%20Arijit%20Singh%20Amitabh%20Bhattacharya_360p.mp3',
+        image: 'C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/ab67616d0000b273a0f38823e6bdb40b4f3555bd.jfif',
+        artist: 'Arijit Singh',
+        movie: 'Bhediya',
+        video: 'C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/New folder (3)/vid.mp4'
+      },
+      {
+        name: 'Ed Sheeran - Shape of You',
+        src: 'http://127.0.0.1:8000/y2mate.com%20-%20Ed%20Sheeran%20%20Shape%20of%20You%20Official%20Music%20Video.mp3',
+        image: 'C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/MV5BMGNlODRhYjEtMTY3ZC00Y2QwLTk0Y2ItNDE0NDUyYmQxYWQ4XkEyXkFqcGc@._V1_.jpg',
+        artist: 'Ed Sheeran',
+        movie: 'Shape of You',
+        video: 'C:/Users/Ayush Singh.DESKTOP-KV4BRTT/Downloads/New folder (3)/vid.mp4'
+      }
+    ];
+
+    const songsContainer = document.getElementById('songs-container');
+    const audio = document.getElementById('audio');
+    const audioSource = document.getElementById('audio-source');
+    const playButton = document.getElementById('play');
+    const prevButton = document.getElementById('prev');
+    const nextButton = document.getElementById('next');
+    const rectangle = document.getElementById('rectangle');
+    const songDetails = document.getElementById('song-details');
+    const songImage = document.getElementById('song-image');
+    const songName = document.getElementById('song-name');
+    const songMovie = document.getElementById('song-movie');
+    const songArtist = document.getElementById('song-artist');
+    const rectangleDetailsVideo = document.getElementById('rectangle-details-video');
+    const videoBackground = document.getElementById('video-background');
+    const timeline = document.getElementById('timeline');
+    const searchBar = document.getElementById('search-bar');
+    const searchButton = document.getElementById('search-btn');
+    const noResults = document.getElementById('no-results');
+
+    let currentSongIndex = 0;
+    let isPlaying = false;
+    let currentTime = 0;
+
+    // Function to dynamically create song cards
+    function renderSongs(songsToRender) {
+      songsContainer.innerHTML = ''; // Clear previous results
+      songsToRender.forEach((song, index) => {
+        const card = document.createElement('div');
+        card.classList.add('song-card');
+        card.innerHTML = `<img src="${song.image}" alt="${song.name}"><p class="song-title">${song.name}</p>`;
+        card.addEventListener('click', () => {
+          currentSongIndex = index;
+          loadSong(song);
+          playSong();
+        });
+        songsContainer.appendChild(card);
+      });
+    }
+
+    // Function to load the song details
+    function loadSong(song) {
+      songImage.src = song.image;
+      songName.textContent = song.name;
+      songMovie.textContent = song.movie;
+      songArtist.textContent = song.artist;
+      audioSource.src = song.src;
+      rectangleDetailsVideo.src = song.video;
+      audio.load();
+    }
+
+    // Function to play the song
+    function playSong() {
+      audio.play();
+      isPlaying = true;
+      playButton.textContent = '❚❚';
+      videoBackground.style.opacity = 1; // Show video when song is playing
+      fadeInRectangle(); // Show the rectangle with fade-in effect
+    }
+
+    // Function to pause the song
+    function pauseSong() {
+      audio.pause();
+      isPlaying = false;
+      playButton.textContent = '▶';
+      videoBackground.style.opacity = 0; // Hide video when song is paused
+      fadeOutRectangle(); // Hide the rectangle with fade-out effect
+    }
+
+    // Function to fade in the right rectangle
+    function fadeInRectangle() {
+      rectangle.style.opacity = 1;
+    }
+
+    // Function to fade out the right rectangle
+    function fadeOutRectangle() {
+      rectangle.style.opacity = 0;
+    }
+
+    // Play and Pause button event listener
+    playButton.addEventListener('click', () => {
+      if (isPlaying) {
+        pauseSong();
+      } else {
+        playSong();
+      }
+    });
+
+    // Previous button event listener
+    prevButton.addEventListener('click', () => {
+      currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+      loadSong(songs[currentSongIndex]);
+      playSong();
+    });
+
+    // Next button event listener
+    nextButton.addEventListener('click', () => {
+      currentSongIndex = (currentSongIndex + 1) % songs.length;
+      loadSong(songs[currentSongIndex]);
+      playSong();
+    });
+
+    // Timeline slider event listener
+    timeline.addEventListener('input', (e) => {
+      const progress = e.target.value;
+      audio.currentTime = (progress / 100) * audio.duration;
+    });
+
+   
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        timeline.value = progress;
+      }
+    });
+
+  
+    searchButton.addEventListener('click', () => {
+      const searchTerm = searchBar.value.toLowerCase();
+      const filteredSongs = songs.filter(song => song.name.toLowerCase().includes(searchTerm));
+      
+      if (filteredSongs.length > 0) {
+        renderSongs(filteredSongs);
+        noResults.style.display = 'none';
+      } else {
+        noResults.textContent = 'Song not found';
+        noResults.style.display = 'block';
+        songsContainer.innerHTML = '';
+      }
+    });
+
+    renderSongs(songs);
+  </script>
+</body>
+</html>
